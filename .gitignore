@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 target/
+test.osm
+test.json
+chichester_city.json

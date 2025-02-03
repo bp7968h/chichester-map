@@ -1,7 +1,5 @@
 use std::{
-    collections::HashMap,
-    fs::File,
-    io::BufReader,
+    collections::HashMap, env, fs::File, io::BufReader, process
 };
 
 use quick_xml::{events::Event, Reader};
@@ -58,9 +56,17 @@ enum BlockType {
 }
 
 fn main() {
-    let osm_file = File::open("test.osm").expect("Failed to open OSM file");
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 2 {
+        eprintln!("Usage: ./osm_parser <osm_file>");
+        process::exit(1);
+    }
+    let osm_file_path = &args[1];
+
+    let osm_file = File::open(osm_file_path).expect(&format!("Failed to open OSM file name `{}`", osm_file_path));
     let mut reader = Reader::from_reader(BufReader::new(osm_file));
     reader.config_mut().trim_text(true);
+    
     let mut buf = Vec::new();
 
     let mut bounds: Bound = Bound::default();
@@ -107,28 +113,95 @@ fn main() {
                     }
                     nodes.push(node);
                 }
-                b"tag" => todo!(),
-                b"nd" => todo!(),
-                b"member" => todo!(),
+                b"tag" => {
+                    let mut key = String::new();
+                    let mut value = String::new();
+                    for attr in e.attributes().flatten() {
+                        let attr_value = std::str::from_utf8(&attr.value).unwrap();
+                        match attr.key.as_ref() {
+                            b"k" => key = attr_value.to_string(),
+                            b"v" => value = attr_value.to_string(),
+                            _ => {}
+                        }
+                    }
+                    if let Some(block) = &current_block {
+                        match block {
+                            BlockType::Node => { curr_node.tags.insert(key, value); },
+                            BlockType::Way => { curr_way.tags.insert(key, value); },
+                            BlockType::Relation => { curr_relation.tags.insert(key, value); },
+                        }
+                    }
+                },
+                b"nd" => {
+                    for attr in e.attributes().flatten() {
+                        if attr.key.as_ref() == b"ref" {
+                            let node_ref = std::str::from_utf8(&attr.value)
+                                .unwrap()
+                                .parse()
+                                .unwrap_or(0);
+                            curr_way.nodes.push(node_ref);
+                        }
+                    }
+                },
+                b"member" => {
+                    let mut member = RelationMember::default();
+                    for attr in e.attributes().flatten() {
+                        let value = std::str::from_utf8(&attr.value).unwrap().to_string();
+                        match attr.key.as_ref() {
+                            b"type" => member._type = value,
+                            b"ref" => member.ref_id = value.parse().unwrap_or(0),
+                            b"role" => member.role = value,
+                            _ => {}
+                        }
+                    }
+                    curr_relation.members.push(member);
+                },
                 others => eprintln!(
-                    "Some empty tag found, check if it needs to be handeled: [{}]",
+                    "Some `empty` tag found, check if it needs to be handeled: [{}]",
                     std::str::from_utf8(others).unwrap()
                 ),
             },
             Ok(Event::Start(e)) => match e.name().as_ref() {
                 b"node" => {
                     current_block = Some(BlockType::Node);
-                    todo!()
+                    for attr in e.attributes().flatten() {
+                        let value = std::str::from_utf8(&attr.value)
+                            .expect("Failed to parse `node attribute` string");
+                        match attr.key.as_ref() {
+                            b"id" => curr_node.id = value.parse().unwrap_or(0),
+                            b"lat" => curr_node.lat = value.parse().unwrap_or(0.0),
+                            b"lon" => curr_node.lon = value.parse().unwrap_or(0.0),
+                            _ => {}
+                        }
+                    }
                 }
                 b"way" => {
                     current_block = Some(BlockType::Way);
-                    todo!()
+                    for attr in e.attributes().flatten() {
+                        let value = std::str::from_utf8(&attr.value)
+                            .expect("Failed to parse `node attribute` string");
+                        match attr.key.as_ref() {
+                            b"id" => curr_way.id = value.parse().unwrap_or(0),
+                            _ => {}
+                        }
+                    }
                 }
                 b"relation" => {
                     current_block = Some(BlockType::Relation);
-                    todo!()
-                }
-                _ => todo!(),
+                    for attr in e.attributes().flatten() {
+                        let value = std::str::from_utf8(&attr.value)
+                            .expect("Failed to parse `node attribute` string");
+                        match attr.key.as_ref() {
+                            b"id" => curr_relation.id = value.parse().unwrap_or(0),
+                            _ => {}
+                        }
+                    }
+                },
+                b"osm"=> continue,
+                others => eprintln!(
+                    "Some `start` tag found, check if it needs to be handeled: [{}]",
+                    std::str::from_utf8(others).unwrap()
+                ),
             },
             Ok(Event::End(_)) => {
                 if let Some(block) = &current_block {
@@ -154,19 +227,25 @@ fn main() {
         buf.clear();
     }
 
-    // println!("✅ Parsed {} nodes and {} ways", nodes.len(), ways.len());
+    println!("✅ Parsed {} nodes and {} ways and {} relations", nodes.len(), ways.len(), relations.len());
 
-    // 🚀 **Filter Nodes: Keep only referenced ones or those with tags**
+    // Keep only referenced ones or those with tags**
     // let filtered_nodes: Vec<&Node> = nodes.values()
     //     .filter(|node| !node.tags.is_empty() || referenced_nodes.contains(&node.id))
     //     .collect();
 
-    // // 🚀 **Save extracted data as JSON**
-    // let json = serde_json::json!({
-    //     "nodes": filtered_nodes,
-    //     "ways": ways,
-    // });
+    // Save extracted data as JSON**
+    let json = serde_json::json!({
+        "bounds": bounds,
+        "nodes": nodes,
+        "ways": ways,
+        "relations": relations,
+    });
 
-    // std::fs::write("chichester_city.json", serde_json::to_string_pretty(&json).unwrap()).unwrap();
-    // println!("✅ Successfully saved to chichester_city.json!");
+    std::fs::write(
+        &format!("{}.json", osm_file_path.trim_end_matches(".osm")), 
+        serde_json::to_string_pretty(&json).unwrap())
+        .unwrap();
+
+    println!("✅ Successfully saved to {}.json!", osm_file_path.trim_end_matches(".osm"));
 }

@@ -10,6 +10,7 @@
  </node>
  <way id="3172835" visible="true" version="19" changeset="153617826" timestamp="2024-07-06T10:23:19Z" user="PaulT" uid="25766">
   <nd ref="12512445356"/>
+  <nd ref="15201453"/>
   <tag k="dual_carriageway" v="yes"/>
   <tag k="expressway" v="yes"/>
   <tag k="highway" v="trunk"/>
