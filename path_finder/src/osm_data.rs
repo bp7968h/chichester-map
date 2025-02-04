@@ -2,8 +2,6 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-
-
 /// Represents an OSM node with coordinates and optional tags
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct Node {

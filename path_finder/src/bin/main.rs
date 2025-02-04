@@ -9,7 +9,7 @@ fn main() {
         process::exit(1);
     }
     let json_file_path = &args[1];
-    
-    let graph = Graph::from_json_file(&json_file_path).expect("Failed to parse json to graph");
+
+    let graph = Graph::from_json_file(json_file_path).expect("Failed to parse json to graph");
     println!("{:#?}", graph);
 }

@@ -1,22 +1,29 @@
-use std::{cmp::Reverse, collections::{BinaryHeap, HashMap}, error::Error, fs::File, io::BufReader};
+use std::{
+    cmp::Reverse,
+    collections::{BinaryHeap, HashMap},
+    error::Error,
+    fs::File,
+    io::BufReader,
+};
 
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 
 use crate::osm_data::OSMData;
 
-
 /// This represents the weighted graph
 /// Where each will have a id of the node as the key
 /// And the tuple with another node id and the calculated distance
 #[derive(Debug, Default, Serialize, Deserialize)]
-pub struct Graph{
-    adj_list: HashMap<u64, Vec<(u64, f32)>>
+pub struct Graph {
+    adj_list: HashMap<u64, Vec<(u64, f32)>>,
 }
 
 impl Graph {
     pub fn new() -> Self {
-        Graph { ..Default::default() }
+        Graph {
+            ..Default::default()
+        }
     }
 
     pub fn to_json(&self) -> String {
@@ -38,7 +45,7 @@ impl Graph {
         self.add_edge(to.0, from.0, distance_km);
     }
 
-    pub fn from_osm_data(osm_data: OSMData) -> Result<Self, Box<dyn Error>> {
+    pub(crate) fn from_osm_data(osm_data: OSMData) -> Result<Self, Box<dyn Error>> {
         let mut graph = Graph::new();
 
         let mut node_map: HashMap<u64, (f64, f64)> = HashMap::new();
@@ -53,11 +60,19 @@ impl Graph {
                 let from_id = pair[0];
                 let to_id = pair[1];
 
-                if let (Some(&from_coords), Some(&to_coords)) = (node_map.get(&from_id), node_map.get(&to_id)) {
+                if let (Some(&from_coords), Some(&to_coords)) =
+                    (node_map.get(&from_id), node_map.get(&to_id))
+                {
                     if is_oneway {
-                        graph.add_edge_one_way((from_id, from_coords.0, from_coords.1), (to_id, to_coords.0, to_coords.1));
+                        graph.add_edge_one_way(
+                            (from_id, from_coords.0, from_coords.1),
+                            (to_id, to_coords.0, to_coords.1),
+                        );
                     } else {
-                        graph.add_edge_two_way((from_id, from_coords.0, from_coords.1), (to_id, to_coords.0, to_coords.1));
+                        graph.add_edge_two_way(
+                            (from_id, from_coords.0, from_coords.1),
+                            (to_id, to_coords.0, to_coords.1),
+                        );
                     }
                 }
             }
@@ -73,8 +88,8 @@ impl Graph {
         let reader = BufReader::new(file);
 
         let osm_data: OSMData = serde_json::from_reader(reader)?;
-    
-        Self::from_osm_data(osm_data)    
+
+        Self::from_osm_data(osm_data)
     }
 
     pub fn find_shortest_path(&self, start: u64, end: u64) -> Vec<u64> {
@@ -136,7 +151,6 @@ impl Graph {
             .push((to, weight));
     }
 
-
     /// Calculates the distance in `km` using `Harvesine` formula
     /// Uses latutide and longitude of two point and returns the distance
     fn calculate_distance(p1: (f64, f64), p2: (f64, f64)) -> f32 {
@@ -144,18 +158,17 @@ impl Graph {
         const RADIUS: f64 = 6371.0;
         let (lat1, lon1) = p1;
         let (lat2, lon2) = p2;
-        
+
         let lat1_rad = lat1.to_radians();
         let lat2_rad = lat2.to_radians();
         let lat_delta_rad = (lat2 - lat1).to_radians();
         let lon_delta_rad = (lon2 - lon1).to_radians();
         // angle
-        let a = (lat_delta_rad / 2.0).sin().powi(2) + 
-                lat1_rad.cos() * lat2_rad.cos() *
-                (lon_delta_rad / 2.0).sin().powi(2);
+        let a = (lat_delta_rad / 2.0).sin().powi(2)
+            + lat1_rad.cos() * lat2_rad.cos() * (lon_delta_rad / 2.0).sin().powi(2);
         // central angle
         let c = 2.0 * (a.sqrt().atan2((1.0 - a).sqrt()));
-        
+
         (((RADIUS * c) * 1000.0).round() / 1000.0) as f32
     }
 }
@@ -183,7 +196,7 @@ mod tests {
         assert_eq!(graph.find_shortest_path(3, 5), vec![3, 2, 5]);
         assert_eq!(graph.find_shortest_path(1, 4), vec![1, 4]);
         assert_eq!(graph.find_shortest_path(1, 1), vec![1]);
-        assert_eq!(graph.find_shortest_path(3, 4), vec![3,2,5,4]);
+        assert_eq!(graph.find_shortest_path(3, 4), vec![3, 2, 5, 4]);
     }
 
     #[test]
