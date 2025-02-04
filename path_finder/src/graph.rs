@@ -38,14 +38,7 @@ impl Graph {
         self.add_edge(to.0, from.0, distance_km);
     }
 
-    /// This function uses the path given as argument, to construct the graph using json file
-    /// Identifies if it is one way or two way using the tag in the way
-    pub fn from_json_file(path: &str) -> Result<Self, Box<dyn Error>> {
-        let file = File::open(path)?;
-        let reader = BufReader::new(file);
-
-        let osm_data: OSMData = serde_json::from_reader(reader)?;
-        
+    pub fn from_osm_data(osm_data: OSMData) -> Result<Self, Box<dyn Error>> {
         let mut graph = Graph::new();
 
         let mut node_map: HashMap<u64, (f64, f64)> = HashMap::new();
@@ -71,6 +64,17 @@ impl Graph {
         }
 
         Ok(graph)
+    }
+
+    /// This function uses the path given as argument, to construct the graph using json file
+    /// Identifies if it is one way or two way using the tag in the way
+    pub fn from_json_file(path: &str) -> Result<Self, Box<dyn Error>> {
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+
+        let osm_data: OSMData = serde_json::from_reader(reader)?;
+    
+        Self::from_osm_data(osm_data)    
     }
 
     pub fn find_shortest_path(&self, start: u64, end: u64) -> Vec<u64> {
