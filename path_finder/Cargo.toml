@@ -2,6 +2,10 @@
 name = "path_finder"
 version = "0.1.0"
 edition = "2021"
+default-run = "grapher"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 lazy_static = "1.5.0"
