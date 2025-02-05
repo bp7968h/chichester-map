@@ -1,11 +1,14 @@
-
+import Controls from "./components/Controls"
+import Help from "./components/Help"
+import MapView from "./components/MapView"
 
 function App() {
-
   return (
-    <h1 className="text-3xl font-bold text-blue-900 underline text-center">
-      Hello world!
-    </h1>
+    <div className="realtive w-full h-full">
+      <Controls />
+      <Help />
+      <MapView />
+    </div>
   )
 }
 
