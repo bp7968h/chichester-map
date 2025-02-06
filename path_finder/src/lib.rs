@@ -45,13 +45,13 @@ pub fn load_graph(json_data: &str) -> Result<(), JsValue> {
 }
 
 #[wasm_bindgen]
-pub fn find_shortest_path(start: u64, end: u64) -> JsValue {
+pub fn find_shortest_path(start: u64, end: u64) -> Option<Vec<u64>> {
     let g = GRAPH.lock().expect("Failed to lock GRAPH");
     if let Some(ref graph) = *g {
         let path = graph.find_shortest_path(start, end);
-        serde_wasm_bindgen::to_value(&path).unwrap()
+        Some(path)
     } else {
-        JsValue::NULL
+        None
     }
 }
 
