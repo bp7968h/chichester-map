@@ -48,7 +48,7 @@ const Controls: React.FC = () => {
     };
 
     return (
-        <div className="absolute top-4 left-2 max-w-80 border p-2 rounded">
+        <div className="absolute top-4 left-2 max-w-80 border p-2 rounded z-10 bg-neutral-900 font-mono">
             <Form {...form}>
                 <form
                     onSubmit={form.handleSubmit(handleSubmit)}

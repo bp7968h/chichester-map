@@ -7,6 +7,9 @@ export default {
   ],
   theme: {
   	extend: {
+		fontFamily: {
+			mono: ['JetBrains Mono', 'monospace'],
+		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',

@@ -23,7 +23,7 @@ const Modal: React.FC<ModalProps> = ({
     <div className="fixed w-full h-full inset-0 flex items-center justify-center z-50 bg-black/75">
       <div
         role="dialog"
-        className="bg-alter_bg p-6 m-8 rounded-lg shadow-lg relative w-[70%] max-h-[80%] overflow-y-auto"
+        className="bg-alter_bg font-mono p-6 m-8 rounded-lg shadow-lg relative w-[70%] max-h-[80%] overflow-y-auto"
       >
         <button
           type="button"

@@ -13,10 +13,10 @@ function App() {
   }
 
   return (
-    <div className="realtive w-full h-full">
+    <div className="realtive w-screen h-screen">
+      <MapView />
       <Controls />
       <Help onClick={handleModalOpen} />
-      <MapView />
       {showModal && <Modal onClose={handleModalOpen}/>}
     </div>
   )

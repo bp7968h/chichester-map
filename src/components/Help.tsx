@@ -7,8 +7,8 @@ interface HelpProps {
 
 const Help: React.FC<HelpProps> = ({onClick}) => {
     return (
-        <div className="absolute top-4 right-8">
-            <Icons.helper onClick={() => onClick()} className="cursor-pointer"/>
+        <div className="absolute top-4 right-8 z-10 text-black">
+            <Icons.helper onClick={() => onClick()} className="cursor-pointer w-10 h-10"/>
         </div>
     )
 }
