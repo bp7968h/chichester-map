@@ -3,7 +3,7 @@ import Controls from "./components/Controls"
 import Help from "./components/Help"
 import MapView from "./components/MapView"
 import Modal from "./components/modal/Modal";
-import { useGraph } from "./useGraph";
+import { useGraph } from "./hooks/useGraph";
 import { Icons } from "./components/ui/icons";
 
 function App() {
