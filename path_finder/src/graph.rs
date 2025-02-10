@@ -7,9 +7,10 @@ use std::{
 };
 
 use ordered_float::OrderedFloat;
+use rstar::RTree;
 use serde::{Deserialize, Serialize};
 
-use crate::osm_data::OSMData;
+use crate::{osm_data::OSMData, r_tree::NodePoint};
 
 /// This represents the weighted graph
 /// Where each will have a id of the node as the key
@@ -17,13 +18,23 @@ use crate::osm_data::OSMData;
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Graph {
     adj_list: HashMap<u64, Vec<(u64, f32)>>,
+    rtree: RTree<NodePoint>,
 }
 
 impl Graph {
     pub fn new() -> Self {
         Graph {
+            rtree: RTree::new(),
             ..Default::default()
         }
+    }
+
+    pub fn nearest_neighbor(&self, lat: f64, lon: f64) -> Option<u64> {
+        self.rtree.nearest_neighbor(&[lat, lon]).map(|node| node.id)
+    }
+
+    pub fn contains_node_id(&self, id: u64) -> bool {
+        self.adj_list.contains_key(&id)
     }
 
     pub fn to_json(&self) -> String {
@@ -47,8 +58,9 @@ impl Graph {
 
     pub(crate) fn from_osm_data(osm_data: OSMData) -> Result<Self, Box<dyn Error>> {
         let mut graph = Graph::new();
-
+        let mut valid_nodes: HashMap<u64, (f64, f64)> = HashMap::new();
         let mut node_map: HashMap<u64, (f64, f64)> = HashMap::new();
+
         for node in &osm_data.nodes {
             node_map.insert(node.id, (node.lat, node.lon));
         }
@@ -63,6 +75,9 @@ impl Graph {
                 if let (Some(&from_coords), Some(&to_coords)) =
                     (node_map.get(&from_id), node_map.get(&to_id))
                 {
+                    valid_nodes.insert(from_id, from_coords);
+                    valid_nodes.insert(to_id, to_coords);
+
                     if is_oneway {
                         graph.add_edge_one_way(
                             (from_id, from_coords.0, from_coords.1),
@@ -76,6 +91,11 @@ impl Graph {
                     }
                 }
             }
+        }
+
+        for (&node_id, &(lat, lon)) in &valid_nodes {
+            let node_point = NodePoint { id: node_id, lat, lon };
+            graph.rtree.insert(node_point);
         }
 
         Ok(graph)

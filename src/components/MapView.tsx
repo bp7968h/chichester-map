@@ -8,27 +8,29 @@ const MapView: React.FC = () => {
     useEffect(() => {
         if (!location) return;
 
-        if (typeof L === "undefined") {
-            console.error("Leaflet is not loaded.");
-            return;
-        }
-        
         if (!map) {
-            const newMap = L.map("map").setView([location.latitude, location.longitude], 13);
+            const newMap = L.map("map").setView([location.latitude, location.longitude], 20);
 
             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors',
             }).addTo(newMap);
 
+            L.marker([location.latitude, location.longitude]).addTo(newMap);
             setMap(newMap);
         } else {
-            map.setView([location.latitude, location.longitude], 13);
+            map.setView([location.latitude, location.longitude], 20);
+            L.marker([location.latitude, location.longitude]).addTo(map);
+
+            map.on('click', function(e: any) {
+                // console.log(e);
+                alert(e.latlng);
+            });
         }
 
         return () => {
-            map.remove();
+            map?.remove();
         };
-    },[location])
+    },[location, map])
 
     return (
         <div id="map" className="w-full h-full p-2 z-0">
