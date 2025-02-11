@@ -49,17 +49,11 @@ const Controls: React.FC<{
         },
     });
 
-    const handleSubmit = (values: z.infer<typeof formSchema>) => {
-        setStart({ lat: values.startLat, lng: values.startLng });
-        setEnd({ lat: values.endLat, lng: values.endLng });
-        onVisualize();
-    };
-
     return (
         <div className="absolute top-4 left-2 max-w-80 border p-2 rounded z-10 bg-neutral-900 font-mono">
             <Form {...form}>
                 <form
-                    onSubmit={form.handleSubmit(handleSubmit)}
+                    onSubmit={form.handleSubmit(onVisualize)}
                     className="space-y-4 flex flex-col items-center"
                 >
                     <Accordion type="single" collapsible>

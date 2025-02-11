@@ -14,7 +14,6 @@ export function useLocation () {
         }
 
         const success = (position: GeolocationPosition) => {
-            console.log(position);
             setLocation({
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
@@ -22,7 +21,7 @@ export function useLocation () {
         };
 
         const failure = (err: GeolocationPositionError) => {
-            console.error(err.message);
+            console.error(err);
             setLocation({
                 latitude: 50.8376,
                 longitude: 0.7749,
