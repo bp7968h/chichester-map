@@ -31,20 +31,28 @@ const formSchema = z.object({
     }),
 });
 
-const Controls: React.FC = () => {
+const Controls: React.FC<{
+    start: { lat: number; lng: number } | null;
+    end: { lat: number; lng: number } | null;
+    setStart: (location: { lat: number; lng: number }) => void;
+    setEnd: (location: { lat: number; lng: number }) => void;
+    onVisualize: () => void;
+  }> = ({ start, end, setStart, setEnd, onVisualize }) => {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            startLat: 0,
-            startLng: 0,
-            endLat: 0,
-            endLng: 0,
+            startLat: start?.lat || 0,
+            startLng: start?.lng || 0,
+            endLat: end?.lat || 0,
+            endLng: end?.lng || 0,
             algorithm: "dijkstra",
         },
     });
 
     const handleSubmit = (values: z.infer<typeof formSchema>) => {
-        console.log(values);
+        setStart({ lat: values.startLat, lng: values.startLng });
+        setEnd({ lat: values.endLat, lng: values.endLng });
+        onVisualize();
     };
 
     return (
@@ -74,7 +82,12 @@ const Controls: React.FC = () => {
                                             <FormItem>
                                                 <FormLabel>Latitude</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="0.0" {...field} />
+                                                    <Input 
+                                                        placeholder="0.0" 
+                                                        {...field} 
+                                                        value={start?.lat || 0} 
+                                                        onChange={(e) => setStart({ ...start!, lat: Number(e.target.value) })}
+                                                        />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -87,7 +100,12 @@ const Controls: React.FC = () => {
                                             <FormItem>
                                                 <FormLabel>Longitude</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="0.0" {...field} />
+                                                    <Input 
+                                                        placeholder="0.0" 
+                                                        {...field} 
+                                                        value={start?.lng || 0} 
+                                                        onChange={(e) => setStart({ ...start!, lng: Number(e.target.value) })}
+                                                    />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -103,7 +121,12 @@ const Controls: React.FC = () => {
                                             <FormItem>
                                                 <FormLabel>Latitude</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="0.0" {...field} />
+                                                    <Input 
+                                                        placeholder="0.0" 
+                                                        {...field} 
+                                                        value={end?.lat || 0} 
+                                                        onChange={(e) => setEnd({ ...end!, lat: Number(e.target.value) })}    
+                                                    />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -116,7 +139,12 @@ const Controls: React.FC = () => {
                                             <FormItem>
                                                 <FormLabel>Longitude</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="0.0" {...field} />
+                                                    <Input 
+                                                        placeholder="0.0" 
+                                                        {...field} 
+                                                        value={end?.lng || 0} 
+                                                        onChange={(e) => setEnd({ ...end!, lng: Number(e.target.value) })}
+                                                    />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>

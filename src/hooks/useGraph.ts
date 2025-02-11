@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 export function useGraph() {
     const [graphState, setGraphState] = useState<boolean>(false);
-    const [pathFn, setPathFn] = useState<undefined | ((start: bigint, end: bigint) => BigUint64Array | undefined)>(undefined);
+    const [pathFn, setPathFn] = useState<undefined | ((lat1: number, lon1: number, lat2: number, lon2: number) => BigUint64Array | undefined)>(undefined);
     const [loadGraphFn, setLoadGraphFn] = useState<null | ((json_data: string) => void)>(null);
 
     useEffect(() => {

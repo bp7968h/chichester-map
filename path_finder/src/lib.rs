@@ -57,7 +57,11 @@ pub fn find_shortest_path(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -> Option<
             return None; 
         }
 
+        log(&format!("start: {} / end: {}", start_node, end_node) );
+
         let path = graph.find_shortest_path(start_node, end_node);
+
+        log(&format!("path: {:?}", path));
         Some(path)
     } else {
         None
