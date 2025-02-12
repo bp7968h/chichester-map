@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-      - uses: actions/checkout@v4
+        uses: actions/checkout@v4
       
       - name: Install Rust and wasm-pack
         uses: actions-rs/toolchain@v1
@@ -20,16 +20,15 @@ jobs:
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-      - name: Build WASM package
-        run: npm run build:wasm
-
       - name: Minify JSON
         run: |
           sudo apt-get update
           sudo apt-get install -y jq
-
           jq -c . public/map_data.json > public/map_data.min.json
           mv public/map_data.min.json public/map_data.json
+
+      - name: Build WASM package
+        run: npm run build:wasm
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
