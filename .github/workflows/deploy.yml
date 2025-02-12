@@ -20,12 +20,20 @@ jobs:
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
+      - name: Build osm_parser (Release Mode)
+        run: |
+          cd osm_parser
+          cargo build --release
+          ./osm_parser/target/release/osm_parser chichester_map.osm
+          mv chichester_map.json ../public/chichester_map.json
+          cd ..
+
       - name: Minify JSON
         run: |
           sudo apt-get update
           sudo apt-get install -y jq
-          jq -c . public/map_data.json > public/map_data.min.json
-          mv public/map_data.min.json public/map_data.json
+          jq -c . public/chichester_map.json > public/chichester_map.min.json
+          mv public/chichester_map.min.json public/chichester_map.json
 
       - name: Build WASM package
         run: npm run build:wasm
