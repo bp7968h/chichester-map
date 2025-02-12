@@ -24,7 +24,7 @@ jobs:
         run: |
           cd osm_parser
           cargo build --release
-          ./osm_parser/target/release/osm_parser chichester_city.osm
+          ./target/release/osm_parser chichester_city.osm
           mv chichester_city.json ../public/chichester_city.json
           cd ..
 
