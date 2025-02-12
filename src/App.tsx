@@ -14,7 +14,8 @@ function App() {
   const { location } = useLocation();
   const [start, setStart] = useState<{ lat: number; lng: number } | null>(null);
   const [end, setEnd] = useState<{ lat: number; lng: number } | null>(null);
-  const [path, setPath] = useState<BigUint64Array | null>(null);
+  const [path, setPath] = useState<Array<{ id: number; lat: number; lng: number }> | null>(null);
+
 
   const handleModalOpen = () => {
     setShowModal((prev) => !prev)
@@ -23,11 +24,19 @@ function App() {
   const handleComputePath = () => {
     if (start && end && pathFn) {
       console.log("Computing shortest path...");
+
       const result = pathFn(start.lat, start.lng, end.lat, end.lng);
-      console.log("Computed Path:", result);
-      setPath(result || null);
+
+      if (result) {
+        console.log("Computed Path:", result);
+        setPath(result);
+      } else {
+        console.log("No path found.");
+        setPath(null);
+      }
     }
-  };
+};
+
 
   useEffect(() => {
     if (!loadGraphFn) {
@@ -62,7 +71,7 @@ function App() {
 
   return (
     <div className="realtive w-screen h-screen">
-      <MapView start={start} end={end} setStart={setStart} setEnd={setEnd} />
+      <MapView start={start} end={end} setStart={setStart} setEnd={setEnd} path={path} />
       <Controls start={start} end={end} setStart={setStart} setEnd={setEnd} onVisualize={handleComputePath} />
       <Help onClick={handleModalOpen} />
       {showModal && <Modal onClose={handleModalOpen}/>}

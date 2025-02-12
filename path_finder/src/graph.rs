@@ -17,7 +17,7 @@ use crate::{osm_data::OSMData, r_tree::NodePoint};
 /// And the tuple with another node id and the calculated distance
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Graph {
-    adj_list: HashMap<u64, Vec<(u64, f32)>>,
+    adj_list: HashMap<u64, (f64, f64, Vec<(u64, f32)>)>,
     rtree: RTree<NodePoint>,
 }
 
@@ -45,15 +45,15 @@ impl Graph {
     /// Point here is a tuple with the node id, lat and long
     pub fn add_edge_one_way(&mut self, from: (u64, f64, f64), to: (u64, f64, f64)) {
         let distance_km = Graph::calculate_distance((from.1, from.2), (to.1, to.2));
-        self.add_edge(from.0, to.0, distance_km);
+        self.add_edge(from, to, distance_km);
     }
 
     /// This takes two points and adds edge for from <-> to
     /// Point here is a tuple with the node id, lat and long
     pub fn add_edge_two_way(&mut self, from: (u64, f64, f64), to: (u64, f64, f64)) {
         let distance_km = Graph::calculate_distance((from.1, from.2), (to.1, to.2));
-        self.add_edge(from.0, to.0, distance_km);
-        self.add_edge(to.0, from.0, distance_km);
+        self.add_edge(from, to, distance_km);
+        self.add_edge(to, from, distance_km);
     }
 
     pub(crate) fn from_osm_data(osm_data: OSMData) -> Result<Self, Box<dyn Error>> {
@@ -112,7 +112,7 @@ impl Graph {
         Self::from_osm_data(osm_data)
     }
 
-    pub fn find_shortest_path(&self, start: u64, end: u64) -> Vec<u64> {
+    pub fn find_shortest_path(&self, start: u64, end: u64) -> Vec<(u64, f64, f64)> {
         let mut distances: HashMap<u64, f32> = HashMap::new();
         let mut predecessors: HashMap<u64, u64> = HashMap::new();
         let mut heap: BinaryHeap<Reverse<(OrderedFloat<f32>, u64)>> = BinaryHeap::new();
@@ -135,7 +135,7 @@ impl Graph {
                 continue;
             }
 
-            if let Some(neighbours) = self.adj_list.get(&node) {
+            if let Some((_, _, neighbours)) = self.adj_list.get(&node) {
                 for &(neighbour, weight) in neighbours {
                     let new_cost = cost + weight;
                     if new_cost < OrderedFloat(*distances.get(&neighbour).unwrap_or(&f32::MAX)) {
@@ -150,25 +150,31 @@ impl Graph {
         let mut current = end;
 
         while let Some(&prev) = predecessors.get(&current) {
-            path.push(current);
+            if let Some(&(lat, lon, _)) = self.adj_list.get(&current) {
+                path.push((current, lat, lon));
+            }
             current = prev;
         }
 
-        if path.is_empty() && start != end {
-            return vec![];
+        if let Some(&(lat, lon, _)) = self.adj_list.get(&start) {
+            path.push((start, lat, lon));
         }
 
-        path.push(start);
         path.reverse();
         path
     }
 
     /// Helper function add edge to the list with weight
-    fn add_edge(&mut self, from: u64, to: u64, weight: f32) {
+    fn add_edge(&mut self, from: (u64, f64, f64), to: (u64, f64, f64), weight: f32) {
         self.adj_list
-            .entry(from)
-            .or_insert_with(|| Vec::new())
-            .push((to, weight));
+            .entry(from.0)
+            .or_insert_with(|| (from.1, from.2, Vec::new()))
+            .2
+            .push((to.0, weight));
+
+        self.adj_list
+            .entry(to.0)
+            .or_insert_with(|| (to.1, to.2, Vec::new()));
     }
 
     /// Calculates the distance in `km` using `Harvesine` formula
@@ -211,12 +217,12 @@ mod tests {
         // 1.26km
         graph.add_edge_two_way((2, 51.5074, 0.1278), (5, 51.5074, 0.11008));
 
-        assert_eq!(graph.find_shortest_path(1, 3), vec![1, 2, 3]);
-        assert_eq!(graph.find_shortest_path(1, 5), vec![1, 4, 5]);
-        assert_eq!(graph.find_shortest_path(3, 5), vec![3, 2, 5]);
-        assert_eq!(graph.find_shortest_path(1, 4), vec![1, 4]);
-        assert_eq!(graph.find_shortest_path(1, 1), vec![1]);
-        assert_eq!(graph.find_shortest_path(3, 4), vec![3, 2, 5, 4]);
+        assert_eq!(graph.find_shortest_path(1, 3), vec![(1, 51.5074, 0.1278), (2, 51.5074, 0.20005), (3, 51.5074, 0.27230)]);
+        assert_eq!(graph.find_shortest_path(1, 5), vec![(1, 51.5074, 0.1278), (4, 51.5074, 0.100000), (5, 51.5074, 0.1712)]);
+        assert_eq!(graph.find_shortest_path(3, 5), vec![(3, 51.5074, 0.27230), (2, 51.5074, 0.20005), (5, 51.5074, 0.1712)]);
+        assert_eq!(graph.find_shortest_path(1, 4), vec![(1, 51.5074, 0.1278), (4, 51.5074, 0.100000)]);
+        assert_eq!(graph.find_shortest_path(1, 1), vec![(1, 51.5074, 0.1278)]);
+        assert_eq!(graph.find_shortest_path(3, 4), vec![(3, 51.5074, 0.27230), (2, 51.5074, 0.20005), (5, 51.5074, 0.1712), (4, 51.5074, 0.1278)]);
     }
 
     #[test]
@@ -233,7 +239,7 @@ mod tests {
         // 5km
         graph.add_edge_one_way((3, 51.5074, 0.1278), (5, 51.5074, 0.20005));
 
-        assert_eq!(graph.find_shortest_path(1, 3), vec![1, 4, 3]);
-        assert_eq!(graph.find_shortest_path(3, 1), Vec::<u64>::new());
+        assert_eq!(graph.find_shortest_path(1, 3), vec![(1, 51.5074, 0.1278), (4, 51.5074, 0.20005), (3, 51.5074, 0.27230)]);
+        assert_eq!(graph.find_shortest_path(3, 1), Vec::<(u64, f64, f64)>::new());
     }
 }

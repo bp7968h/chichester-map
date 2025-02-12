@@ -46,26 +46,28 @@ pub fn load_graph(json_data: &str) -> Result<(), JsValue> {
 }
 
 #[wasm_bindgen]
-pub fn find_shortest_path(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -> Option<Vec<u64>> {
+pub fn find_shortest_path(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -> JsValue {
     let g = GRAPH.lock().expect("Failed to lock GRAPH");
     if let Some(ref graph) = *g {
-        let start_node = graph.nearest_neighbor(lat1, lon1)?;
-        let end_node = graph.nearest_neighbor(lat2, lon2)?;
+        let start_node = graph.nearest_neighbor(lat1, lon1);
+        let end_node = graph.nearest_neighbor(lat2, lon2);
 
-        if !graph.contains_node_id(start_node) || !graph.contains_node_id(end_node) {
-            // No valid path if nodes are disconnected
-            return None; 
+        if let (Some(start_node), Some(end_node)) = (start_node, end_node) {
+            if !graph.contains_node_id(start_node) || !graph.contains_node_id(end_node) {
+                return JsValue::NULL;
+            }
+
+            log(&format!("start: {} / end: {}", start_node, end_node));
+
+            let path = graph.find_shortest_path(start_node, end_node);
+            
+            log(&format!("path: {:?}", path));
+
+            // Convert Vec<(id, lat, lon)> to JSON for JS usage
+            return serde_wasm_bindgen::to_value(&path).unwrap();
         }
-
-        log(&format!("start: {} / end: {}", start_node, end_node) );
-
-        let path = graph.find_shortest_path(start_node, end_node);
-
-        log(&format!("path: {:?}", path));
-        Some(path)
-    } else {
-        None
-    }
+    } 
+    JsValue::NULL
 }
 
 #[wasm_bindgen]

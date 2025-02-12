@@ -7,12 +7,12 @@ const MapView: React.FC<{
     end: { lat: number; lng: number } | null;
     setStart: (location: { lat: number; lng: number }) => void;
     setEnd: (location: { lat: number; lng: number }) => void;
-}> = ({ start, end, setStart, setEnd }) => {
+    path: Array<{ id: number; lat: number; lng: number }> | null;
+}> = ({ start, end, setStart, setEnd, path }) => {
     const mapRef = useRef<any | null>(null);
     const [startMarker, setStartMarker] = useState<any | null>(null);
     const [endMarker, setEndMarker] = useState<any | null>(null);
-
-    console.log("map render");
+    const [pathPolyline, setPathPolyline] = useState<any | null>(null);
 
     useEffect(() => {
         if (!start) return;
@@ -50,7 +50,7 @@ const MapView: React.FC<{
         if (!mapRef.current || !end) return;
 
         if (!endMarker) {
-          const marker = L.marker([end.lat, end.lng], { draggable: true, title: "End" })
+          const marker = L.marker([end.lat, end.lng], { draggable: true, title: "End", opacity: 0.8 })
             .addTo(mapRef.current)
             .bindPopup("End Point")
             .openPopup();
@@ -79,6 +79,23 @@ const MapView: React.FC<{
           mapRef.current?.off("click");
         };
     }, [end]);
+
+    useEffect(() => {
+      if (!mapRef.current || !path || path.length === 0) return;
+
+      if (pathPolyline) {
+          mapRef.current.removeLayer(pathPolyline);
+      }
+
+      const newPolyline = L.polyline(
+          path.map(point => [point.lat, point.lng]), 
+          { color: "rgb(133, 232, 157)", weight: 5, opacity: 0.7 }
+      ).addTo(mapRef.current);
+
+      mapRef.current.fitBounds(newPolyline.getBounds());
+
+      setPathPolyline(newPolyline);
+  }, [path]);
 
     return (
         <div id="map" className="w-full h-full p-2 z-0">

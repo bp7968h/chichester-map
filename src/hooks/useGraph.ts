@@ -3,13 +3,23 @@ import { useEffect, useState } from "react";
 
 export function useGraph() {
     const [graphState, setGraphState] = useState<boolean>(false);
-    const [pathFn, setPathFn] = useState<undefined | ((lat1: number, lon1: number, lat2: number, lon2: number) => BigUint64Array | undefined)>(undefined);
+    const [pathFn, setPathFn] = useState<undefined | ((lat1: number, lon1: number, lat2: number, lon2: number) => Array<{ id: number; lat: number; lng: number }> | null)>(undefined);
     const [loadGraphFn, setLoadGraphFn] = useState<null | ((json_data: string) => void)>(null);
 
     useEffect(() => {
         (async () => {
             await init();
-            setPathFn(() => find_shortest_path);
+            setPathFn(() => (lat1: number, lon1: number, lat2: number, lon2: number) => {
+                const result = find_shortest_path(lat1, lon1, lat2, lon2);
+                if (result && Array.isArray(result)) {
+                    return result.map(node => ({
+                        id: node[0],    // Node ID
+                        lat: node[1],   // Latitude
+                        lng: node[2],   // Longitude
+                    }));
+                }
+                return null;
+            });
             setLoadGraphFn(() => load_graph); 
             setGraphState(is_graph_loaded());
         })();
