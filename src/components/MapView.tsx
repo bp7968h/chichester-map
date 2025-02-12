@@ -1,5 +1,3 @@
-import { useLocation } from "@/hooks/useLocation";
-import { title } from "process";
 import React, { useEffect, useState, useRef } from "react";
 
 const MapView: React.FC<{
