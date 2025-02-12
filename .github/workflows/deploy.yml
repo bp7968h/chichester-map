@@ -24,16 +24,16 @@ jobs:
         run: |
           cd osm_parser
           cargo build --release
-          ./osm_parser/target/release/osm_parser chichester_map.osm
-          mv chichester_map.json ../public/chichester_map.json
+          ./osm_parser/target/release/osm_parser chichester_city.osm
+          mv chichester_city.json ../public/chichester_city.json
           cd ..
 
       - name: Minify JSON
         run: |
           sudo apt-get update
           sudo apt-get install -y jq
-          jq -c . public/chichester_map.json > public/chichester_map.min.json
-          mv public/chichester_map.min.json public/chichester_map.json
+          jq -c . public/chichester_city.json > public/chichester_city.min.json
+          mv public/chichester_city.min.json public/chichester_city.json
 
       - name: Build WASM package
         run: npm run build:wasm
