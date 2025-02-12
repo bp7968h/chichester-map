@@ -1,0 +1,53 @@
+name: Deploy
+on:
+  push:
+    branches: [ "main" ]
+env:
+  CARGO_TERM_COLOR: always
+jobs:
+  build:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust and wasm-pack
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Build WASM package
+        run: npm run build:wasm
+
+      - name: Minify JSON
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+          jq -c . public/map_data.json > public/map_data.min.json
+          mv public/map_data.min.json public/map_data.json
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      # Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Build the project
+      - name: Build project
+        run: npm run build
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          exclude_assets: '.github,osm_parser,path_finder'
