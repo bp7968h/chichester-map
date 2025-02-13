@@ -1,9 +1,10 @@
+import { PathPoint } from "@/global";
 import init, {load_graph, find_shortest_path, is_graph_loaded} from "path_finder";
 import { useEffect, useState } from "react";
 
 export function useGraph() {
     const [graphState, setGraphState] = useState<boolean>(false);
-    const [pathFn, setPathFn] = useState<undefined | ((lat1: number, lon1: number, lat2: number, lon2: number) => Array<{ id: number; lat: number; lng: number }> | null)>(undefined);
+    const [pathFn, setPathFn] = useState<undefined | ((lat1: number, lon1: number, lat2: number, lon2: number) => PathPoint[] | null)>(undefined);
     const [loadGraphFn, setLoadGraphFn] = useState<null | ((json_data: string) => void)>(null);
 
     useEffect(() => {

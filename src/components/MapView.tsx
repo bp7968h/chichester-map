@@ -1,12 +1,15 @@
+import { Location, PathPoint, L } from "@/global";
 import React, { useEffect, useState, useRef } from "react";
 
-const MapView: React.FC<{
-    start: { lat: number; lng: number } | null;
-    end: { lat: number; lng: number } | null;
-    setStart: (location: { lat: number; lng: number }) => void;
-    setEnd: (location: { lat: number; lng: number }) => void;
-    path: Array<{ id: number; lat: number; lng: number }> | null;
-}> = ({ start, end, setStart, setEnd, path }) => {
+interface MapViewProps {
+  start: Location | null;
+  end: Location | null;
+  setStart: (location: Location) => void;
+  setEnd: (location: Location) => void;
+  path: PathPoint[] | null;
+}
+
+const MapView: React.FC<MapViewProps> = ({ start, end, setStart, setEnd, path }) => {
     const mapRef = useRef<any | null>(null);
     const [startMarker, setStartMarker] = useState<any | null>(null);
     const [endMarker, setEndMarker] = useState<any | null>(null);
