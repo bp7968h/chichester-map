@@ -1,5 +1,6 @@
 import { Location, PathPoint } from "@/global.d";
 import { useMapInstance } from "@/hooks/useMapInstance";
+import { useMapMarker } from "@/hooks/useMapMarker";
 import React, { useEffect, useState } from "react";
 
 interface MapViewProps {
@@ -12,49 +13,10 @@ interface MapViewProps {
 
 const MapView: React.FC<MapViewProps> = ({ start, end, setStart, setEnd, path }) => {
     const mapRef = useMapInstance(start);
-    const [startMarker, setStartMarker] = useState<any | null>(null);
-    const [endMarker, setEndMarker] = useState<any | null>(null);
     const [pathPolyline, setPathPolyline] = useState<any | null>(null);
 
-    useEffect(() => {
-        if (!mapRef.current || !start) return;
-
-        if (!startMarker) {
-          const marker = L.marker([start.lat, start.lng], { draggable: true, title: "Start" })
-            .addTo(mapRef.current)
-            .bindPopup("Start Point")
-            .openPopup();
-
-          marker.on("dragend", (e: any) => {
-            const newPos = e.target.getLatLng();
-            setStart({ lat: newPos.lat, lng: newPos.lng });
-          });
-
-          setStartMarker(marker);
-        } else {
-          startMarker.setLatLng([start.lat, start.lng]);
-        }
-      }, [start]);
-
-    useEffect(() => {
-        if (!mapRef.current || !end) return;
-
-        if (!endMarker) {
-          const marker = L.marker([end.lat, end.lng], { draggable: true, title: "End", opacity: 0.8 })
-            .addTo(mapRef.current)
-            .bindPopup("End Point")
-            .openPopup();
-
-          marker.on("dragend", (e: any) => {
-            const newPos = e.target.getLatLng();
-            setEnd({ lat: newPos.lat, lng: newPos.lng });
-          });
-
-          setEndMarker(marker);
-        } else {
-          endMarker.setLatLng([end.lat, end.lng]);
-        }
-      }, [end]);
+    useMapMarker({map: mapRef!, position: start!, title: 'Start', onDragEnd: setStart});
+    useMapMarker({map: mapRef!, position: end!, title: 'End', opacity: 0.8, onDragEnd: setEnd});
 
     useEffect(() => {
         if (!mapRef.current) return;
