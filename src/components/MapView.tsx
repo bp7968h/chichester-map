@@ -1,5 +1,6 @@
-import { Location, PathPoint, L } from "@/global";
-import React, { useEffect, useState, useRef } from "react";
+import { Location, PathPoint } from "@/global.d";
+import { useMapInstance } from "@/hooks/useMapInstance";
+import React, { useEffect, useState } from "react";
 
 interface MapViewProps {
   start: Location | null;
@@ -10,22 +11,10 @@ interface MapViewProps {
 }
 
 const MapView: React.FC<MapViewProps> = ({ start, end, setStart, setEnd, path }) => {
-    const mapRef = useRef<any | null>(null);
+    const mapRef = useMapInstance(start);
     const [startMarker, setStartMarker] = useState<any | null>(null);
     const [endMarker, setEndMarker] = useState<any | null>(null);
     const [pathPolyline, setPathPolyline] = useState<any | null>(null);
-
-    useEffect(() => {
-        if (!start) return;
-    
-        if (!mapRef.current) {
-          mapRef.current = L.map("map").setView([start.lat, start.lng], 17);
-    
-          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors',
-          }).addTo(mapRef.current);
-        }
-      }, [location]);
 
     useEffect(() => {
         if (!mapRef.current || !start) return;
