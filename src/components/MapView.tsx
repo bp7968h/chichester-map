@@ -24,6 +24,7 @@ const MapView: React.FC<MapViewProps> = ({ start, end, setStart, setEnd, path })
         if (!mapRef.current) return;
 
         mapRef.current.on("click", (e: any) => {
+          // console.log("clicked");
           if (!end) {
             setEnd({ lat: e.latlng.lat, lng: e.latlng.lng });
           }

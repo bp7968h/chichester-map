@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import {BOUNDS} from "@/global.d";
 
 type Coordinates = {
     latitude: number, 
@@ -15,12 +16,13 @@ export function useLocation () {
 
         const success = (position: GeolocationPosition) => {
             const {latitude, longitude } = position.coords;
-            const maxlat = 50.84156;
-            const maxlon = -0.75059;
-            const minlat = 50.8254;
-            const minlon = -0.79419;
 
-            if (latitude >= minlat && latitude <= maxlat && longitude >= minlon && longitude <= maxlon) {
+            if (
+                latitude >= BOUNDS.minLat && 
+                latitude <= BOUNDS.maxLat && 
+                longitude >= BOUNDS.minLon && 
+                longitude <= BOUNDS.maxLon
+            ) {
                 setLocation({
                     latitude: position.coords.latitude,
                     longitude: position.coords.longitude,
