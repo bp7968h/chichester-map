@@ -41,6 +41,12 @@ export const useMapMarker = ({
           marker.setLatLng([position.lat, position.lng]);
         }
 
+        return () => {
+          if (marker) {
+            marker.remove();
+          }
+        };
+
       }, [map, position, title, opacity, onDragEnd]);
     
     return marker;

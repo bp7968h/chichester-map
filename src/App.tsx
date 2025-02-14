@@ -26,12 +26,12 @@ function App() {
       console.log("Computing shortest path...");
 
       const result = pathFn(start.lat, start.lng, end.lat, end.lng);
-
+      // console.log("Res: ", result);
       if (result) {
-        console.log("Computed Path:", result);
+        // console.log("Computed Path:", result);
         setPath(result);
       } else {
-        console.log("No path found.");
+        console.error("No path found.");
         setPath(null);
       }
     }

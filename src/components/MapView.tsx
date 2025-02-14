@@ -1,6 +1,7 @@
 import { Location, PathPoint } from "@/global.d";
 import { useMapInstance } from "@/hooks/useMapInstance";
 import { useMapMarker } from "@/hooks/useMapMarker";
+import { useMapPath } from "@/hooks/useMapPath";
 import React, { useEffect, useState } from "react";
 
 interface MapViewProps {
@@ -13,10 +14,11 @@ interface MapViewProps {
 
 const MapView: React.FC<MapViewProps> = ({ start, end, setStart, setEnd, path }) => {
     const mapRef = useMapInstance(start);
-    const [pathPolyline, setPathPolyline] = useState<any | null>(null);
-
+    
     useMapMarker({map: mapRef!, position: start!, title: 'Start', onDragEnd: setStart});
     useMapMarker({map: mapRef!, position: end!, title: 'End', opacity: 0.8, onDragEnd: setEnd});
+
+    useMapPath(mapRef, path);
 
     useEffect(() => {
         if (!mapRef.current) return;
@@ -31,23 +33,6 @@ const MapView: React.FC<MapViewProps> = ({ start, end, setStart, setEnd, path })
           mapRef.current?.off("click");
         };
     }, [end]);
-
-    useEffect(() => {
-      if (!mapRef.current || !path || path.length === 0) return;
-
-      if (pathPolyline) {
-          mapRef.current.removeLayer(pathPolyline);
-      }
-
-      const newPolyline = L.polyline(
-          path.map(point => [point.lat, point.lng]), 
-          { color: "rgb(133, 232, 157)", weight: 5, opacity: 0.7 }
-      ).addTo(mapRef.current);
-
-      mapRef.current.fitBounds(newPolyline.getBounds());
-
-      setPathPolyline(newPolyline);
-  }, [path]);
 
     return (
         <div id="map" className="w-full h-full p-2 z-0">

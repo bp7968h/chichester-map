@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build:wasm": "wasm-pack build ./path_finder/ --target web --out-dir ../pkg",
-    "dev": "npm run build:wasm && vite",
+    "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
