@@ -22,9 +22,8 @@ const MapView: React.FC<MapViewProps> = ({ start, end, setStart, setEnd, path })
 
     useEffect(() => {
         if (!mapRef.current) return;
-
+        
         mapRef.current.on("click", (e: any) => {
-          // console.log("clicked");
           if (!end) {
             setEnd({ lat: e.latlng.lat, lng: e.latlng.lng });
           }
@@ -33,7 +32,7 @@ const MapView: React.FC<MapViewProps> = ({ start, end, setStart, setEnd, path })
         return () => {
           mapRef.current?.off("click");
         };
-    }, [end]);
+    }, [mapRef, end]);
 
     return (
         <div id="map" className="w-full h-full p-2 z-0">
